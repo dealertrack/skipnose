@@ -1,8 +1,8 @@
 DtNose
 ======
 
-DealerTrack Nose plugin which allows to conditionally include
-tests in the test runner by the folder they bold in.
+DealerTrack Nose plugin which allows to conditionally include/exclude
+tests in the test runner by the folder glob pattern they belong in.
 
 To achieve that, the plugin adds 3 configuration options to nosetests:
 
