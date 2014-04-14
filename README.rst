@@ -6,12 +6,13 @@ tests in the test runner by the folder they bold in.
 
 To achieve that, the plugin adds 3 configuration options to nosetests:
 
-:``--dtnose``:
+``--dtnose``
     This option enables the ``dtnose`` plugin and should be provided
     if its features need to be used. Alternatively to passing an option
     to nose (e.g. ``nosetests --dtnose``), this can be provided as an
     environment variable ``export NOSE_DTNOSE=1``.
-:``--dtnose-exclude``:
+
+``--dtnose-exclude``
     This option specifies using glob pattern any folders which nosetests
     should ignore. This option can also be provided multiple times and
     alternatively can be provided as a ``[,;:]``-delimited
@@ -40,7 +41,7 @@ To achieve that, the plugin adds 3 configuration options to nosetests:
             sub2foo3/             <= excluded
               ...
 
-:``--dtnose-include``:
+``--dtnose-include``
     This option specifies using glob pattern the only folders nosetests
     should run. This option can also be provided multiple times and
     alternatively can be provided as a ``[,;:]``-delimited
