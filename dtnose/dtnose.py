@@ -95,4 +95,4 @@ class DtNose(Plugin):
             else:
                 print('Nosetests:          {}'.format(dirname), file=sys.stderr)
 
-        return want
+        return False if want == False else None
