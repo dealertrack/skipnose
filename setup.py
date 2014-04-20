@@ -4,22 +4,24 @@ from setuptools import setup, find_packages
 
 
 def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname), 'rb').read().decode('utf-8')
+    return open(os.path.join(os.path.dirname(__file__), fname), 'rb') \
+        .read().decode('utf-8')
 
 
 setup(
-    name='dtnose',
+    name='skipnose',
     version='0.1.0',
-    description='conditionally run selective nosetests',
+    description='Nose plugin which allows to include/exclude directories '
+                'for testing by their glob pattern.',
     long_description=read('README.rst'),
-    url='http://10.134.8.70/E003134/dt-nose',
+    url='http://10.134.8.70/E003134/skipnose',
     packages=find_packages(exclude=['test', 'test.*']),
     install_requires=[
         'setuptools',
     ],
     entry_points={
         'nose.plugins.0.10': [
-            'NOSETESTS_DTNOSE = dtnose:DtNose'
+            'NOSETESTS_SKIPNOSE = skipnose:SkipNose'
         ]
     },
     keywords=' '.join([
