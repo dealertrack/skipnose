@@ -44,7 +44,7 @@ class SkipNose(Plugin):
             '--skipnose-debug',
             action='store_true',
             default=False,
-            dest='skiptnose_debug',
+            dest='skipnose_debug',
             help='skipnose: enable debugging print-outs'
         )
         parser.add_option(
