@@ -13,7 +13,7 @@ Plugin adds 3 configuration options to nosetests:
 ``--with-skipnose``
     Required option to enable ``skipnose`` plugin functionality.
     Alternatively can be provided as an environment variable
-    ``NOSE_SKIPNOSE`` (e.g. add this to ``.bashrc`` - ``export NOSE_DTNOSE=1``).
+    ``NOSE_SKIPNOSE`` (e.g. add this to ``.bashrc`` - ``export NOSE_SKIPNOSE=1``).
 
 ``--skipnose-exclude``
     This option specifies using glob pattern any folders which nosetests
