@@ -11,6 +11,7 @@ def read(fname):
 setup(
     name='skipnose',
     version='0.1.0',
+    author='Miroslav Shubernetskiy',
     description='Nose plugin which allows to include/exclude directories '
                 'for testing by their glob pattern.',
     long_description=read('README.rst'),
@@ -31,7 +32,6 @@ setup(
         'nosetest',
     ]),
     classifiers=[
-        "License :: OSI Approved :: BSD License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Development Status :: 4 - Beta",
@@ -39,5 +39,4 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Software Development :: Testing",
     ],
-    license='MIT',
 )
