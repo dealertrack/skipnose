@@ -29,8 +29,79 @@ class TestWalkSubfolders(TestCase):
         mock_walk.assert_called_once_with('foo')
 
 
-class TestSkipNose(TestCase):
+class TestSkipNoseConfig(TestCase):
+    """
+    Test class for skipnose configurations
+    """
+
     def setUp(self):
+        super(TestSkipNoseConfig, self).setUp()
+        self.plugin = SkipNose()
+
+    def test_options(self):
+        """
+        Test skipnose adds all configs to nose with
+        correct defaults taken from environment variables.
+        """
+        env = {
+            'NOSE_SKIPNOSE_INCLUDE': 'including',
+            'NOSE_SKIPNOSE_EXCLUDE': 'excluding',
+            'NOSE_SKIPNOSE': 'on',
+        }
+        mock_parser = mock.MagicMock()
+
+        self.plugin.options(mock_parser, env)
+
+        mock_parser.add_option.assert_has_calls(
+            [
+                mock.call('--with-skipnose',
+                          action='store_true',
+                          default=True,
+                          dest=mock.ANY,
+                          help=mock.ANY),
+                mock.call('--skipnose-debug',
+                          action='store_true',
+                          default=False,
+                          dest=mock.ANY,
+                          help=mock.ANY),
+                mock.call('--skipnose-include',
+                          action='append',
+                          default=['including'],
+                          dest=mock.ANY,
+                          help=mock.ANY),
+                mock.call('--skipnose-exclude',
+                          action='append',
+                          default=['excluding'],
+                          dest=mock.ANY,
+                          help=mock.ANY),
+            ]
+        )
+
+    def test_configure(self):
+        """
+        Test that configure sets class attributes correctly
+        """
+        mock_options = mock.MagicMock(
+            skipnose_debug=mock.sentinel.debug,
+            skipnose_include=mock.sentinel.include,
+            skipnose_exclude=mock.sentinel.exclude,
+        )
+
+        self.plugin.configure(mock_options, None)
+
+        self.assertTrue(self.plugin.enabled)
+        self.assertEqual(self.plugin.debug, mock.sentinel.debug)
+        self.assertEqual(self.plugin.skipnose_include, mock.sentinel.include)
+        self.assertEqual(self.plugin.skipnose_exclude, mock.sentinel.exclude)
+
+
+class TestSkipNose(TestCase):
+    """
+    Test class for skipnose functionality
+    """
+
+    def setUp(self):
+        super(TestSkipNose, self).setUp()
         self.plugin = SkipNose()
         self.test_paths = (
             ('/test', ('api-parent', 'foo-parent',)),

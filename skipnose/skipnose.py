@@ -45,7 +45,8 @@ class SkipNose(Plugin):
         Nose plugin method which allows to add shell options
         to nosetests runner
         """
-        skipnose_on = bool(env.get(self.env_opt, False))
+        truth = ('true', '1', 'on')
+        skipnose_on = env.get(self.env_opt, 'False').lower() in truth
         skip_include = filter(bool, re.split(r'[,;:]', env.get(self.env_include_opt, '')))
         skip_exclude = filter(bool, re.split(r'[,;:]', env.get(self.env_exclude_opt, '')))
 
