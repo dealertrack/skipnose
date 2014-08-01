@@ -17,7 +17,7 @@ setup(
     long_description=read('README.rst'),
     url='http://10.134.8.70/E003134/skipnose',
     packages=find_packages(exclude=['test', 'test.*']),
-    install_requires=[
+    install_requires=read('requirements.txt').splitlines() + [
         'setuptools',
     ],
     entry_points={

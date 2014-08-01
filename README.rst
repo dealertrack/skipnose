@@ -73,6 +73,10 @@ Plugin adds 3 configuration options to nosetests:
             sub2foo3/             <= only this will run
               ...
 
+``--skipnose-debug``
+    This option enabled some extra print statements for debugging
+    to see which folders skipnose includes or excludes.
+
 Difference
 ----------
 
@@ -111,6 +115,17 @@ folders which will allow the ``subapi`` to be accepted.
 
 Hopefully this behaviour makes including specific folders and their subtree
 in the test runner a lot more intuitive and simpler to configure.
+
+Testing
+-------
+
+To run the tests you need to install testing requirements first::
+
+    $ pip install -r requirements-dev.txt
+
+Then to run tests, you can use ``nosetests``::
+
+    $ nosetests -sv
 
 Credits
 -------

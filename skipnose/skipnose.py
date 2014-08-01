@@ -17,6 +17,19 @@ def walk_subfolders(path):
 
 
 class SkipNose(Plugin):
+    """
+    Nose plugin class for skipnose
+
+    Attributes
+    ----------
+    skipnose_include : list
+        List of glob patterns to include
+    skipnose_exclude : list
+        List of glob patterns to exclude
+    debug : bool
+        Whether skipnose should print out debug messages
+    """
+
     env_opt = 'NOSE_SKIPNOSE'
     env_include_opt = 'NOSE_SKIPNOSE_INCLUDE'
     env_exclude_opt = 'NOSE_SKIPNOSE_EXCLUDE'
@@ -28,6 +41,10 @@ class SkipNose(Plugin):
         self.skipnose_exclude = None
 
     def options(self, parser, env=os.environ):
+        """
+        Nose plugin method which allows to add shell options
+        to nosetests runner
+        """
         skipnose_on = bool(env.get(self.env_opt, False))
         skip_include = filter(bool, re.split(r'[,;:]', env.get(self.env_include_opt, '')))
         skip_exclude = filter(bool, re.split(r'[,;:]', env.get(self.env_exclude_opt, '')))
@@ -69,6 +86,16 @@ class SkipNose(Plugin):
         )
 
     def configure(self, options, conf):
+        """
+        When nosetests shell command is executed with correct
+        parameters, nose calls configure method which allows
+        to reflect the given flags in command
+        in the plugin instance.
+
+        One special boolean flag this method should set is
+        ``enabled`` attribute which tells nosetests
+        if this nose plugin should be enabled
+        """
         if options.skipnose:
             self.enabled = True
             self.debug = options.skipnose_debug
@@ -76,19 +103,59 @@ class SkipNose(Plugin):
             self.skipnose_exclude = options.skipnose_exclude
 
     def wantDirectory(self, dirname):
+        """
+        Nose plugin hook which allows to add logic whether nose
+        should look for tests in the given directory.
+
+        Even though nose allows the function to return both boolean
+        ``True`` and ``False``, this implementation only returns
+        ``False`` when a folder should explicitly be excluded and
+        ``None`` when nose should use other factors to determine
+        if the directory should be included. One example why
+        ``True`` should not be returned is tests in folder
+        without ``__init__.py`` file. If returned, all tests
+        inside that folder will be executed even though is it
+        not a valid Python package. By returning ``None``,
+        that tells nose to apply additional logic in the
+        determination such as checking if the folder is valid
+        Python package.
+
+        Parameters
+        ----------
+        dirname : str
+            Directory path to consider
+
+        Returns
+        -------
+        want : bool, None
+            Boolean if tests should be executed inside the given folder.
+            ``None`` is returned for unknown.
+        """
         want = True
         basename = os.path.basename(dirname)
 
         if self.skipnose_include:
-            subfolders = map(os.path.basename, list(walk_subfolders(dirname)) + [dirname])
-            want = any(map(lambda i: fnmatch.filter(subfolders, i), self.skipnose_include))
+            # check all subfolders to see if any of them match
+            # if yes, then this parent folder should be included
+            # so that nose can get to the subfolder
+            subfolders = map(os.path.basename,
+                             list(walk_subfolders(dirname)) + [dirname])
+            want = any(map(lambda i: fnmatch.filter(subfolders, i),
+                           self.skipnose_include))
 
+            # if directory is not wanted then there is a possibility
+            # it is a subfolder of a wanted directory so
+            # check against parent folder patterns
             if not want:
                 parts = dirname.split(os.sep)
-                want = any(map(lambda i: fnmatch.filter(parts, i), self.skipnose_include))
+                want = any(map(lambda i: fnmatch.filter(parts, i),
+                               self.skipnose_include))
 
         if self.skipnose_exclude and want != False:
-            want = not any(map(lambda i: fnmatch.fnmatch(basename, i), self.skipnose_exclude))
+            # exclude the folder if the folder path
+            # matches any of the exclude patterns
+            want = not any(map(lambda i: fnmatch.fnmatch(basename, i),
+                               self.skipnose_exclude))
 
         if self.debug:
             if not want:
@@ -96,4 +163,5 @@ class SkipNose(Plugin):
             else:
                 print('Skipnose:          {}'.format(dirname), file=sys.stderr)
 
+        # normalize boolean to only ``False`` or ``None``
         return False if want == False else None
