@@ -15,7 +15,7 @@ setup(
     description='Nose plugin which allows to include/exclude directories '
                 'for testing by their glob pattern.',
     long_description=read('README.rst'),
-    url='http://10.134.8.70/E003134/skipnose',
+    url='http://10.134.8.70/Dealertrack/skipnose',
     packages=find_packages(exclude=['test', 'test.*']),
     install_requires=read('requirements.txt').splitlines() + [
         'setuptools',
