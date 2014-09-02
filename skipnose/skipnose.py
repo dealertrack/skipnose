@@ -152,7 +152,7 @@ class SkipNose(Plugin):
                 want = any(map(lambda i: fnmatch.filter(parts, i),
                                self.skipnose_include))
 
-        if self.skipnose_exclude and want != False:
+        if self.skipnose_exclude and want is not False:
             # exclude the folder if the folder path
             # matches any of the exclude patterns
             want = not any(map(lambda i: fnmatch.fnmatch(basename, i),
@@ -165,4 +165,4 @@ class SkipNose(Plugin):
                 print('Skipnose:          {}'.format(dirname), file=sys.stderr)
 
         # normalize boolean to only ``False`` or ``None``
-        return False if want == False else None
+        return False if want is False else None
