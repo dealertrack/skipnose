@@ -68,7 +68,7 @@ class SkipNose(Plugin):
         parser.add_option(
             '--skipnose-include',
             action='append',
-            default=skip_include,
+            default=list(skip_include),
             dest='skipnose_include',
             help='skipnose: which directory to include in tests using glob syntax.'
                  'can be specified multiple times. '
@@ -78,7 +78,7 @@ class SkipNose(Plugin):
         parser.add_option(
             '--skipnose-exclude',
             action='append',
-            default=skip_exclude,
+            default=list(skip_exclude),
             dest='skipnose_exclude',
             help='skipnose: which directory to exclude in tests using glob syntax.'
                  'can be specified multiple times. '

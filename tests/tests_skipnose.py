@@ -135,7 +135,7 @@ class TestSkipNose(TestCase):
         Function to be provided to mock.side_effect to replace
         walk_subfolders functionality to use test paths.
         """
-        paths = map(lambda i: i[0], self.test_paths)
+        paths = list(map(lambda i: i[0], self.test_paths))
         index = paths.index(path)
         if len(paths) > index + 1:
             return filter(lambda i: i.startswith(path), paths[index:])
