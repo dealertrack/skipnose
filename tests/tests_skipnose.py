@@ -95,6 +95,7 @@ class TestSkipNoseConfig(TestCase):
         self.assertEqual(self.plugin.skipnose_exclude, mock.sentinel.exclude)
 
 
+@mock.patch('skipnose.skipnose.print', mock.MagicMock(), create=True)
 class TestSkipNose(TestCase):
     """
     Test class for skipnose functionality
@@ -103,6 +104,7 @@ class TestSkipNose(TestCase):
     def setUp(self):
         super(TestSkipNose, self).setUp()
         self.plugin = SkipNose()
+        self.plugin.debug = True
         self.test_paths = (
             ('/test', ('api-parent', 'foo-parent',)),
             ('/test/bar/cat/one', ('non-api',)),
