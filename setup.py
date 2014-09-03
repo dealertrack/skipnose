@@ -33,7 +33,7 @@ setup(
     description='Nose plugin which allows to include/exclude directories '
                 'for testing by their glob pattern.',
     long_description='\n\n'.join([readme, history, authors, licence]),
-    url='http://10.134.8.70/Dealertrack/skipnose',
+    url='https://github.com/Dealertrack/skipnose',
     packages=find_packages(exclude=['test', 'test.*']),
     install_requires=requirements,
     test_suite='tests',
