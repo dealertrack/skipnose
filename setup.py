@@ -51,6 +51,7 @@ setup(
         'nosetest',
     ]),
     classifiers=[
+        "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Development Status :: 4 - Beta",
