@@ -115,7 +115,7 @@ class TestSkipNose(TestCase):
             ('/test/bar/dog/one/api/subapi', ('api-child',)),
             ('/test/bar/dog/one/api/subapi/moreapi', ('api-child',)),
             ('/test/bar/dog/one/api/subapi/evenmoreapi', ('api-child',)),
-            ('/test/bar/dog/one/api/subapi/evenmoreapi/crazyapi', ('api-child',)),
+            ('/test/bar/dog/one/api/subapi/evenmoreapi/api', ('api-child',)),
             ('/test/foo', ('api-parent-foo', 'foo')),
             ('/test/foo/api', ('api', 'foo-child')),
             ('/test/foo/api/subapi', ('api-child', 'foo-child')),
@@ -127,7 +127,7 @@ class TestSkipNose(TestCase):
             ('/test/foo/nonapi/folderone', ('non-api', 'foo-child')),
             ('/test/foo/nonapi/foldertwo', ('non-api', 'foo-child')),
             ('/test/foo/nonapi/foldertwo/morestuff', ('non-api', 'foo-child')),
-            ('/test/foo/nonapi/foldertwo/toomuchstuff', ('non-api', 'foo-child')),
+            ('/test/foo/nonapi/foldertwo/toomuch', ('non-api', 'foo-child')),
         )
 
     def _mock_walk_subfolders(self, path):
@@ -152,7 +152,8 @@ class TestSkipNose(TestCase):
         self.plugin.skipnose_include = ['api']
         for path, properties in self.test_paths:
             accepted = ('api-parent', 'api-parent-foo', 'api', 'api-child')
-            expected = None if any(map(lambda i: i in properties, accepted)) else False
+            expected = (None if any(map(lambda i: i in properties, accepted))
+                        else False)
             actual = self.plugin.wantDirectory(path)
             self.assertEqual(actual, expected,
                              '{} != {} for {}'.format(actual, expected, path))
@@ -167,7 +168,8 @@ class TestSkipNose(TestCase):
         self.plugin.skipnose_include = ['api', 'foo']
         for path, properties in self.test_paths:
             accepted = ('api-parent', 'api', 'api-child', 'foo', 'foo-child')
-            expected = None if any(map(lambda i: i in properties, accepted)) else False
+            expected = (None if any(map(lambda i: i in properties, accepted))
+                        else False)
             actual = self.plugin.wantDirectory(path)
             self.assertEqual(actual, expected,
                              '{} != {} for {}'.format(actual, expected, path))
@@ -182,7 +184,8 @@ class TestSkipNose(TestCase):
             if 'api-child' in properties:
                 continue
             accepted = ('api-parent', 'api-parent-foo', 'non-api')
-            expected = None if any(map(lambda i: i in properties, accepted)) else False
+            expected = (None if any(map(lambda i: i in properties, accepted))
+                        else False)
             actual = self.plugin.wantDirectory(path)
             self.assertEqual(actual, expected,
                              '{} != {} for {}'.format(actual, expected, path))
@@ -197,7 +200,8 @@ class TestSkipNose(TestCase):
             if 'api-child' in properties or 'foo-child' in properties:
                 continue
             accepted = ('api-parent', 'non-api', 'foo-parent')
-            expected = None if any(map(lambda i: i in properties, accepted)) else False
+            expected = (None if any(map(lambda i: i in properties, accepted))
+                        else False)
             actual = self.plugin.wantDirectory(path)
             self.assertEqual(actual, expected,
                              '{} != {} for {}'.format(actual, expected, path))

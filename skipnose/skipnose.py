@@ -47,15 +47,20 @@ class SkipNose(Plugin):
         """
         truth = ('true', '1', 'on')
         skipnose_on = env.get(self.env_opt, 'False').lower() in truth
-        skip_include = filter(bool, re.split(r'[,;:]', env.get(self.env_include_opt, '')))
-        skip_exclude = filter(bool, re.split(r'[,;:]', env.get(self.env_exclude_opt, '')))
+        skip_include = filter(
+            bool, re.split(r'[,;:]', env.get(self.env_include_opt, ''))
+        )
+        skip_exclude = filter(
+            bool, re.split(r'[,;:]', env.get(self.env_exclude_opt, ''))
+        )
 
         parser.add_option(
             '--with-skipnose',
             action='store_true',
             default=skipnose_on,
             dest='skipnose',
-            help='skipnose: enable skipnose nose plugin (alternatively, set ${}=1)'
+            help='skipnose: enable skipnose nose plugin '
+                 '(alternatively, set ${}=1)'
                  ''.format(self.env_opt)
         )
         parser.add_option(
@@ -70,7 +75,8 @@ class SkipNose(Plugin):
             action='append',
             default=list(skip_include),
             dest='skipnose_include',
-            help='skipnose: which directory to include in tests using glob syntax.'
+            help='skipnose: which directory to include in tests '
+                 'using glob syntax.'
                  'can be specified multiple times. '
                  '(alternatively, set ${} as [,;:] delimited string)'
                  ''.format(self.env_include_opt)
@@ -80,7 +86,8 @@ class SkipNose(Plugin):
             action='append',
             default=list(skip_exclude),
             dest='skipnose_exclude',
-            help='skipnose: which directory to exclude in tests using glob syntax.'
+            help='skipnose: which directory to exclude in tests '
+                 'using glob syntax.'
                  'can be specified multiple times. '
                  '(alternatively, set ${} as [,;:] delimited string)'
                  ''.format(self.env_exclude_opt)
