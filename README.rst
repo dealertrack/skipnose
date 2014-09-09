@@ -1,6 +1,13 @@
 SkipNose
 ========
 
+.. image:: https://badge.fury.io/py/skipnose.png
+    :target: http://badge.fury.io/py/skipnose
+
+.. image:: https://travis-ci.org/dealertrack/skipnose.png?branch=master
+    :target: https://travis-ci.org/dealertrack/skipnose
+
+
 Nose plugin which allows to include/exclude directories for testing
 by their glob pattern. This allows to selectively filter which
 tests are executed.
