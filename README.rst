@@ -7,6 +7,8 @@ SkipNose
 .. image:: https://travis-ci.org/dealertrack/skipnose.png?branch=master
     :target: https://travis-ci.org/dealertrack/skipnose
 
+.. image:: https://coveralls.io/repos/dealertrack/skipnose/badge.png?branch=master
+    :target: https://coveralls.io/r/dealertrack/skipnose?branch=master
 
 Nose plugin which allows to include/exclude directories for testing
 by their glob pattern. This allows to selectively filter which
