@@ -6,10 +6,6 @@ import re
 from setuptools import setup, find_packages
 
 
-module_file = open("skipnose/__init__.py").read()
-metadata = dict(re.findall("__([a-z]+)__\s*=\s*'([^']+)'", module_file))
-
-
 def read(fname):
     return (open(os.path.join(os.path.dirname(__file__), fname), 'rb')
             .read().decode('utf-8'))
@@ -19,6 +15,10 @@ authors = read('AUTHORS.rst')
 history = read('HISTORY.rst').replace('.. :changelog:', '')
 licence = read('LICENSE.rst')
 readme = read('README.rst')
+
+
+module_file = read("skipnose/__init__.py")
+metadata = dict(re.findall("__([a-z]+)__\s*=\s*'([^']+)'", module_file))
 
 
 requirements = read('requirements.txt').splitlines() + [
