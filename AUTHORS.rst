@@ -14,7 +14,7 @@ Development Lead
 Contributors
 ~~~~~~~~~~~~
 
-None yet. Why not be the first?
+* Ben Homnick - https://github.com/bhomnick
 
 
 .. _DealerTrack GitHub: https://github.com/Dealertrack

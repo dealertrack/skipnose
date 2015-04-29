@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, print_function
 import os
+import re
 from setuptools import setup, find_packages
-
-from skipnose import __author__, __email__, __version__
 
 
 def read(fname):
@@ -17,19 +16,26 @@ history = read('HISTORY.rst').replace('.. :changelog:', '')
 licence = read('LICENSE.rst')
 readme = read('README.rst')
 
+
+module_file = read("skipnose/__init__.py")
+metadata = dict(re.findall("__([a-z]+)__\s*=\s*'([^']+)'", module_file))
+
+
 requirements = read('requirements.txt').splitlines() + [
     'setuptools',
 ]
+
 
 test_requirements = (
     read('requirements.txt').splitlines()
     + read('requirements-dev.txt').splitlines()[1:]
 )
 
+
 setup(
     name='skipnose',
-    version=__version__,
-    author=__author__,
+    version=metadata['version'],
+    author=metadata['author'],
     description='Nose plugin which allows to include/exclude directories '
                 'for testing by their glob pattern.',
     long_description='\n\n'.join([readme, history, authors, licence]),
