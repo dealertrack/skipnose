@@ -1,9 +1,14 @@
-from __future__ import unicode_literals, print_function
+from __future__ import print_function, unicode_literals
 import fnmatch
+import functools
+import json
 import os
 import re
 import sys
+
+from nose.case import FunctionTestCase
 from nose.plugins import Plugin
+from nose.plugins.skip import SkipTest
 
 
 def walk_subfolders(path):
@@ -39,6 +44,7 @@ class SkipNose(Plugin):
         self.debug = False
         self.skipnose_include = None
         self.skipnose_exclude = None
+        self.skipnose_skip_tests = None
 
     def options(self, parser, env=os.environ):
         """
@@ -92,6 +98,13 @@ class SkipNose(Plugin):
                  '(alternatively, set ${} as [,;:] delimited string)'
                  ''.format(self.env_exclude_opt)
         )
+        parser.add_option(
+            '--skipnose-skip-tests',
+            action='store',
+            dest='skipnose_skip_tests',
+            help='skipnose: path to a json file which should contain '
+                 'a list of test method names which should be skipped.'
+        )
 
     def configure(self, options, conf):
         """
@@ -109,6 +122,17 @@ class SkipNose(Plugin):
             self.debug = options.skipnose_debug
             self.skipnose_include = options.skipnose_include
             self.skipnose_exclude = options.skipnose_exclude
+
+            if options.skipnose_skip_tests:
+                if not os.path.exists(options.skipnose_skip_tests):
+                    print(
+                        '{} not found'.format(options.skipnose_skip_tests),
+                        file=sys.stderr
+                    )
+
+                with open(options.skipnose_skip_tests, 'rb') as fid:
+                    data = fid.read().decode('utf-8')
+                    self.skipnose_skip_tests = json.loads(data)['skip_tests']
 
     def wantDirectory(self, dirname):
         """
@@ -173,3 +197,29 @@ class SkipNose(Plugin):
 
         # normalize boolean to only ``False`` or ``None``
         return False if want is False else None
+
+    def startTest(self, test):
+        if not self.skipnose_skip_tests:
+            return
+
+        if isinstance(test.test, FunctionTestCase):
+            test_name = '{}.{}'.format(
+                test.test.test.__module__,
+                test.test.test.__name__,
+            )
+        else:
+            test_name = '{}.{}.{}'.format(
+                test.test.__class__.__module__,
+                test.test.__class__.__name__,
+                test.test._testMethodName,
+            )
+
+        if test_name in self.skipnose_skip_tests:
+            @functools.wraps(getattr(test.test, test.test._testMethodName))
+            def skip_test(*args, **kwargs):
+                raise SkipTest(
+                    'Skipping {!r} as per --skipnose-skip-tests'
+                    ''.format(test_name)
+                )
+
+            setattr(test.test, test.test._testMethodName, skip_test)
