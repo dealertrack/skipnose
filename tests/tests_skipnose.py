@@ -259,7 +259,7 @@ class TestSkipNose(TestCase):
         self.plugin.skipnose_skip_tests = ['one', 'two', 'foo.bar']
 
         def test():
-            pass
+            """"""
 
         mock_test = mock.MagicMock()
         mock_test.test = mock.MagicMock(spec=FunctionTestCase)
@@ -280,7 +280,7 @@ class TestSkipNose(TestCase):
 
         class Foo(object):
             def method(self):
-                pass
+                """"""
 
         Foo.__module__ = 'foo'
         instance = Foo()
