@@ -129,6 +129,7 @@ class SkipNose(Plugin):
                         '{} not found'.format(options.skipnose_skip_tests),
                         file=sys.stderr
                     )
+                    sys.exit(1)
 
                 with open(options.skipnose_skip_tests, 'rb') as fid:
                     data = fid.read().decode('utf-8')
