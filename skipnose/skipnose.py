@@ -103,7 +103,8 @@ class SkipNose(Plugin):
             action='store',
             dest='skipnose_skip_tests',
             help='skipnose: path to a json file which should contain '
-                 'a list of test method names which should be skipped.'
+                 'a list of test method names which should be skipped '
+                 'under "skip_tests" key.'
         )
 
     def configure(self, options, conf):

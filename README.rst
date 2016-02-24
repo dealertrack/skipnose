@@ -82,6 +82,11 @@ Plugin adds 3 configuration options to nosetests:
             sub2foo3/             <= only this will run
               ...
 
+``--skipnose-skip-tests``
+    This option allows to skip specific test cases via json file.
+    The provided value should be a path to a json file with ``"skip_tests"``
+    key in json which should contain a list of test case names to skip.
+
 ``--skipnose-debug``
     This option enabled some extra print statements for debugging
     to see which folders skipnose includes or excludes.
