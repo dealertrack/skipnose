@@ -1,7 +1,9 @@
-from __future__ import unicode_literals, print_function
-import mock
+from __future__ import print_function, unicode_literals
 from unittest import TestCase
 
+import mock
+from nose.case import FunctionTestCase
+from nose.plugins.skip import SkipTest
 from skipnose.skipnose import SkipNose, walk_subfolders
 
 
@@ -29,6 +31,7 @@ class TestWalkSubfolders(TestCase):
         mock_walk.assert_called_once_with('foo')
 
 
+@mock.patch('skipnose.skipnose.print', mock.MagicMock(), create=True)
 class TestSkipNoseConfig(TestCase):
     """
     Test class for skipnose configurations
@@ -77,7 +80,9 @@ class TestSkipNoseConfig(TestCase):
             ]
         )
 
-    def test_configure(self):
+    @mock.patch('sys.exit')
+    @mock.patch('os.path.exists')
+    def test_configure(self, mock_path_exists, mock_sys_exit):
         """
         Test that configure sets class attributes correctly
         """
@@ -85,14 +90,53 @@ class TestSkipNoseConfig(TestCase):
             skipnose_debug=mock.sentinel.debug,
             skipnose_include=mock.sentinel.include,
             skipnose_exclude=mock.sentinel.exclude,
+            skipnose_skip_tests='foo.json',
         )
+        mock_path_exists.return_value = True
+        mock_open = mock.MagicMock()
+        mock_open.return_value.__enter__.return_value.read.return_value = (
+            b'{"skip_tests": ["one", "two"]}'
+        )
+        mock_sys_exit.side_effect = SystemExit
 
-        self.plugin.configure(mock_options, None)
+        with mock.patch('skipnose.skipnose.open', mock_open, create=True):
+            self.plugin.configure(mock_options, None)
 
         self.assertTrue(self.plugin.enabled)
         self.assertEqual(self.plugin.debug, mock.sentinel.debug)
         self.assertEqual(self.plugin.skipnose_include, mock.sentinel.include)
         self.assertEqual(self.plugin.skipnose_exclude, mock.sentinel.exclude)
+        self.assertEqual(self.plugin.skipnose_skip_tests, ['one', 'two'])
+        mock_open.assert_called_once_with('foo.json', 'rb')
+
+    @mock.patch('sys.exit')
+    @mock.patch('os.path.exists')
+    def test_configure_error(self, mock_path_exists, mock_sys_exit):
+        """
+        Test that configure sets class attributes correctly when
+        invalid skip-tests path is provided and nose exits
+        """
+        mock_options = mock.MagicMock(
+            skipnose_debug=mock.sentinel.debug,
+            skipnose_include=mock.sentinel.include,
+            skipnose_exclude=mock.sentinel.exclude,
+            skipnose_skip_tests='foo.data',
+        )
+        mock_path_exists.return_value = False
+        mock_open = mock.MagicMock()
+        mock_sys_exit.side_effect = SystemExit
+
+        with mock.patch('skipnose.skipnose.open', mock_open, create=True):
+            with self.assertRaises(SystemExit):
+                self.plugin.configure(mock_options, None)
+
+        self.assertTrue(self.plugin.enabled)
+        self.assertEqual(self.plugin.debug, mock.sentinel.debug)
+        self.assertEqual(self.plugin.skipnose_include, mock.sentinel.include)
+        self.assertEqual(self.plugin.skipnose_exclude, mock.sentinel.exclude)
+        self.assertIsNone(self.plugin.skipnose_skip_tests)
+        self.assertFalse(mock_open.called)
+        mock_sys_exit.assert_called_once_with(1)
 
 
 @mock.patch('skipnose.skipnose.print', mock.MagicMock(), create=True)
@@ -205,3 +249,46 @@ class TestSkipNose(TestCase):
             actual = self.plugin.wantDirectory(path)
             self.assertEqual(actual, expected,
                              '{} != {} for {}'.format(actual, expected, path))
+
+    def test_start_test_no_tests_to_skip(self):
+        self.plugin.skipnose_skip_tests = None
+
+        self.assertIsNone(self.plugin.startTest(mock.Mock()))
+
+    def test_start_test_function_test_case(self):
+        self.plugin.skipnose_skip_tests = ['one', 'two', 'foo.bar']
+
+        mock_test = mock.MagicMock()
+        mock_test.test = mock.MagicMock(spec=FunctionTestCase)
+        mock_test.test.test = mock.MagicMock(__module__='foo', __name__='bar')
+        mock_test.test._testMethodName = 'method'
+        mock_test.test.method = None
+
+        self.plugin.startTest(mock_test)
+
+        replaced_method = mock_test.test.method
+        self.assertIsNotNone(replaced_method)
+        self.assertTrue(callable(replaced_method))
+        with self.assertRaises(SkipTest):
+            replaced_method()
+
+    def test_start_test_method_test_case(self):
+        self.plugin.skipnose_skip_tests = ['one', 'two', 'foo.Foo.method']
+
+        class Foo(object):
+            pass
+
+        Foo.__module__ = 'foo'
+
+        mock_test = mock.MagicMock()
+        mock_test.test = Foo()
+        mock_test.test._testMethodName = 'method'
+        mock_test.test.method = None
+
+        self.plugin.startTest(mock_test)
+
+        replaced_method = mock_test.test.method
+        self.assertIsNotNone(replaced_method)
+        self.assertTrue(callable(replaced_method))
+        with self.assertRaises(SkipTest):
+            replaced_method()

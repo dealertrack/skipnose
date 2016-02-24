@@ -200,6 +200,9 @@ class SkipNose(Plugin):
         return False if want is False else None
 
     def startTest(self, test):
+        """
+        Skip tests when skipnose_skip_tests is provided
+        """
         if not self.skipnose_skip_tests:
             return
 
