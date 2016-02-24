@@ -258,16 +258,19 @@ class TestSkipNose(TestCase):
     def test_start_test_function_test_case(self):
         self.plugin.skipnose_skip_tests = ['one', 'two', 'foo.bar']
 
+        def test():
+            pass
+
         mock_test = mock.MagicMock()
         mock_test.test = mock.MagicMock(spec=FunctionTestCase)
         mock_test.test.test = mock.MagicMock(__module__='foo', __name__='bar')
         mock_test.test._testMethodName = 'method'
-        mock_test.test.method = None
+        mock_test.test.method = test
 
         self.plugin.startTest(mock_test)
 
         replaced_method = mock_test.test.method
-        self.assertIsNotNone(replaced_method)
+        self.assertIsNot(replaced_method, test)
         self.assertTrue(callable(replaced_method))
         with self.assertRaises(SkipTest):
             replaced_method()
@@ -276,19 +279,22 @@ class TestSkipNose(TestCase):
         self.plugin.skipnose_skip_tests = ['one', 'two', 'foo.Foo.method']
 
         class Foo(object):
-            pass
+            def method(self):
+                pass
 
         Foo.__module__ = 'foo'
+        instance = Foo()
+        test = instance.method
 
         mock_test = mock.MagicMock()
-        mock_test.test = Foo()
+        mock_test.test = instance
         mock_test.test._testMethodName = 'method'
-        mock_test.test.method = None
+        mock_test.test.method = test
 
         self.plugin.startTest(mock_test)
 
         replaced_method = mock_test.test.method
-        self.assertIsNotNone(replaced_method)
+        self.assertIsNot(replaced_method, test)
         self.assertTrue(callable(replaced_method))
         with self.assertRaises(SkipTest):
             replaced_method()
