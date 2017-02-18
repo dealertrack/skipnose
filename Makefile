@@ -43,7 +43,7 @@ clean-test-all: clean-test
 	rm -rf .tox/
 
 lint:
-	flake8 skipnose tests
+	flake8 .
 
 test:
 	nosetests ${NOSE_FLAGS} tests/
