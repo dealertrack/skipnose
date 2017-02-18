@@ -53,12 +53,14 @@ class SkipNose(Plugin):
         """
         truth = ('true', '1', 'on')
         skipnose_on = env.get(self.env_opt, 'False').lower() in truth
-        skip_include = filter(
-            bool, re.split(r'[,;:]', env.get(self.env_include_opt, ''))
-        )
-        skip_exclude = filter(
+
+        skip_include = list(filter(
+            bool, re.split(r'[,;]', env.get(self.env_include_opt, ''))
+        ))
+
+        skip_exclude = list(filter(
             bool, re.split(r'[,;:]', env.get(self.env_exclude_opt, ''))
-        )
+        ))
 
         parser.add_option(
             '--with-skipnose',
@@ -66,8 +68,8 @@ class SkipNose(Plugin):
             default=skipnose_on,
             dest='skipnose',
             help='skipnose: enable skipnose nose plugin '
-                 '(alternatively, set ${}=1)'
-                 ''.format(self.env_opt)
+                 '(alternatively, set ${env}=1)'
+                 ''.format(env=self.env_opt)
         )
         parser.add_option(
             '--skipnose-debug',
@@ -79,24 +81,26 @@ class SkipNose(Plugin):
         parser.add_option(
             '--skipnose-include',
             action='append',
-            default=list(skip_include),
+            default=skip_include,
             dest='skipnose_include',
             help='skipnose: which directory to include in tests '
                  'using glob syntax.'
-                 'can be specified multiple times. '
-                 '(alternatively, set ${} as [,;:] delimited string)'
-                 ''.format(self.env_include_opt)
+                 'Specifying multiple times will AND the clauses. '
+                 'Single parameter ":" delimited clauses will be ORed. '
+                 'Alternatively, set ${env} as [,;] delimited string for '
+                 'AND and [:] for OR.'
+                 ''.format(env=self.env_include_opt)
         )
         parser.add_option(
             '--skipnose-exclude',
             action='append',
-            default=list(skip_exclude),
+            default=skip_exclude,
             dest='skipnose_exclude',
             help='skipnose: which directory to exclude in tests '
                  'using glob syntax.'
-                 'can be specified multiple times. '
-                 '(alternatively, set ${} as [,;:] delimited string)'
-                 ''.format(self.env_exclude_opt)
+                 'Can be specified multiple times. '
+                 '(alternatively, set ${env} as [,;:] delimited string)'
+                 ''.format(env=self.env_exclude_opt)
         )
         parser.add_option(
             '--skipnose-skip-tests',
@@ -121,7 +125,10 @@ class SkipNose(Plugin):
         if options.skipnose:
             self.enabled = True
             self.debug = options.skipnose_debug
-            self.skipnose_include = options.skipnose_include
+            self.skipnose_include = list(map(
+                lambda i: i.split(':'),
+                options.skipnose_include
+            ))
             self.skipnose_exclude = options.skipnose_exclude
 
             if options.skipnose_skip_tests:
@@ -169,27 +176,18 @@ class SkipNose(Plugin):
         basename = os.path.basename(dirname)
 
         if self.skipnose_include:
-            # check all subfolders to see if any of them match
-            # if yes, then this parent folder should be included
-            # so that nose can get to the subfolder
-            subfolders = map(os.path.basename,
-                             list(walk_subfolders(dirname)) + [dirname])
-            want = any(map(lambda i: fnmatch.filter(subfolders, i),
-                           self.skipnose_include))
-
-            # if directory is not wanted then there is a possibility
-            # it is a subfolder of a wanted directory so
-            # check against parent folder patterns
-            if not want:
-                parts = dirname.split(os.sep)
-                want = any(map(lambda i: fnmatch.filter(parts, i),
-                               self.skipnose_include))
+            want = all(map(
+                lambda i: self._want_directory_by_includes(dirname, i),
+                self.skipnose_include
+            ))
 
         if self.skipnose_exclude and want is not False:
             # exclude the folder if the folder path
             # matches any of the exclude patterns
-            want = not any(map(lambda i: fnmatch.fnmatch(basename, i),
-                               self.skipnose_exclude))
+            want = not any(map(
+                lambda i: fnmatch.fnmatch(basename, i),
+                self.skipnose_exclude
+            ))
 
         if self.debug:
             if not want:
@@ -199,6 +197,32 @@ class SkipNose(Plugin):
 
         # normalize boolean to only ``False`` or ``None``
         return False if want is False else None
+
+    @staticmethod
+    def _want_directory_by_includes(dirname, includes):
+        # check all subfolders to see if any of them match
+        # if yes, then this parent folder should be included
+        # so that nose can get to the subfolder
+        subfolders = map(
+            os.path.basename,
+            list(walk_subfolders(dirname)) + [dirname]
+        )
+        want = any(map(
+            lambda i: fnmatch.filter(subfolders, i),
+            includes
+        ))
+
+        # if directory is not wanted then there is a possibility
+        # it is a subfolder of a wanted directory so
+        # check against parent folder patterns
+        if not want:
+            parts = dirname.split(os.sep)
+            want = any(map(
+                lambda i: fnmatch.filter(parts, i),
+                includes
+            ))
+
+        return want
 
     def startTest(self, test):
         """
