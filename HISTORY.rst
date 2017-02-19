@@ -3,6 +3,19 @@
 History
 -------
 
+0.3.0 (2017-02-18)
+~~~~~~~~~~~~~~~~~~
+
+* **New** ``--skipnose-include`` clauses now can either be ANDed or ORed.
+  
+  ANDed example::
+
+  	 --skipnose-include=foo  --skipnose-include=bar
+
+  ORed example::
+
+  	--skipnose-include=foo:bar
+
 0.2.0 (2016-02-24)
 ~~~~~~~~~~~~~~~~~~
 
