@@ -17,7 +17,7 @@ tests are executed.
 Using
 -----
 
-Plugin adds 3 configuration options to nosetests:
+Plugin adds 3 configuration options to ``nosetests``:
 
 ``--with-skipnose``
     Required option to enable ``skipnose`` plugin functionality.
@@ -55,13 +55,40 @@ Plugin adds 3 configuration options to nosetests:
 
 ``--skipnose-include``
     This option specifies using glob pattern the only folders nosetests
-    should run. This option can also be provided multiple times and
-    alternatively can be provided as a ``[,;:]``-delimited
+    should run. This option can also be provided multiple times.
+    Each given parameter clause will be ANDed.
+    Within each parameter ``:`` delimited  clauses will be ORed.
+    In addition this parameter can be provided as a ``[,;:]``-delimited (``[,;]`` for AND and ``[:]`` for OR)
     ``NOSE_SKIPNOSE_INCLUDE`` environment variable::
 
         $ nosetests --with-skipnose --skipnose-include=foo3 --skipnose-include=sub2foo?
         $ # is equivalent to
         $ NOSE_SKIPNOSE_INCLUDE=foo3,sub2foo? nosetests --with-skipnose
+
+    which would result in only the following folders being included in the tests::
+
+        tests/
+          foo1/
+            sub1foo1/
+              ...
+            sub2foo1/
+              ...
+          foo2/
+            sub1foo2/
+              ...
+            sub2foo2/
+              ...
+          foo3/                   <= only this will run
+            sub1foo3/
+              ...
+            sub2foo3/             <= only this will run
+              ...
+
+    Here is an example when clauses are ORed::
+
+        $ nosetests --with-skipnose --skipnose-include=foo3:sub2foo?
+        $ # is equivalent to
+        $ NOSE_SKIPNOSE_INCLUDE=foo3:sub2foo? nosetests --with-skipnose
 
     which would result in only the following folders being included in the tests::
 

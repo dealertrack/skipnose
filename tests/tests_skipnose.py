@@ -88,8 +88,8 @@ class TestSkipNoseConfig(TestCase):
         """
         mock_options = mock.MagicMock(
             skipnose_debug=mock.sentinel.debug,
-            skipnose_include=mock.sentinel.include,
-            skipnose_exclude=mock.sentinel.exclude,
+            skipnose_include=['a', 'b:c'],
+            skipnose_exclude=['x', 'y'],
             skipnose_skip_tests='foo.json',
         )
         mock_path_exists.return_value = True
@@ -104,8 +104,8 @@ class TestSkipNoseConfig(TestCase):
 
         self.assertTrue(self.plugin.enabled)
         self.assertEqual(self.plugin.debug, mock.sentinel.debug)
-        self.assertEqual(self.plugin.skipnose_include, mock.sentinel.include)
-        self.assertEqual(self.plugin.skipnose_exclude, mock.sentinel.exclude)
+        self.assertEqual(self.plugin.skipnose_include, [['a'], ['b', 'c']])
+        self.assertEqual(self.plugin.skipnose_exclude, ['x', 'y'])
         self.assertEqual(self.plugin.skipnose_skip_tests, ['one', 'two'])
         mock_open.assert_called_once_with('foo.json', 'rb')
 
@@ -118,8 +118,8 @@ class TestSkipNoseConfig(TestCase):
         """
         mock_options = mock.MagicMock(
             skipnose_debug=mock.sentinel.debug,
-            skipnose_include=mock.sentinel.include,
-            skipnose_exclude=mock.sentinel.exclude,
+            skipnose_include=['a', 'b:c'],
+            skipnose_exclude=['x', 'y'],
             skipnose_skip_tests='foo.data',
         )
         mock_path_exists.return_value = False
@@ -132,8 +132,8 @@ class TestSkipNoseConfig(TestCase):
 
         self.assertTrue(self.plugin.enabled)
         self.assertEqual(self.plugin.debug, mock.sentinel.debug)
-        self.assertEqual(self.plugin.skipnose_include, mock.sentinel.include)
-        self.assertEqual(self.plugin.skipnose_exclude, mock.sentinel.exclude)
+        self.assertEqual(self.plugin.skipnose_include, [['a'], ['b', 'c']])
+        self.assertEqual(self.plugin.skipnose_exclude, ['x', 'y'])
         self.assertIsNone(self.plugin.skipnose_skip_tests)
         self.assertFalse(mock_open.called)
         mock_sys_exit.assert_called_once_with(1)
@@ -149,42 +149,49 @@ class TestSkipNose(TestCase):
         super(TestSkipNose, self).setUp()
         self.plugin = SkipNose()
         self.plugin.debug = True
-        self.test_paths = (
-            ('/test', ('api-parent', 'foo-parent',)),
-            ('/test/bar/cat/one', ('non-api',)),
-            ('/test/bar/cat/one/subone', ('non-api',)),
-            ('/test/bar/cat/two', ('non-api',)),
-            ('/test/bar/dog/one', ('api-parent',)),
-            ('/test/bar/dog/one/api', ('api',)),
-            ('/test/bar/dog/one/api/subapi', ('api-child',)),
-            ('/test/bar/dog/one/api/subapi/moreapi', ('api-child',)),
-            ('/test/bar/dog/one/api/subapi/evenmoreapi', ('api-child',)),
-            ('/test/bar/dog/one/api/subapi/evenmoreapi/api', ('api-child',)),
-            ('/test/foo', ('api-parent-foo', 'foo')),
-            ('/test/foo/api', ('api', 'foo-child')),
-            ('/test/foo/api/subapi', ('api-child', 'foo-child')),
-            ('/test/foo/api/subapi/moreapi', ('api-child', 'foo-child')),
-            ('/test/foo/api/subapi/evenmoreapi', ('api-child', 'foo-child')),
-            ('/test/foo/api/subsubapi', ('api-child', 'foo-child')),
-            ('/test/foo/api/subsubapi/toomuchapi', ('api-child', 'foo-child')),
-            ('/test/foo/nonapi', ('non-api', 'foo-child')),
-            ('/test/foo/nonapi/folderone', ('non-api', 'foo-child')),
-            ('/test/foo/nonapi/foldertwo', ('non-api', 'foo-child')),
-            ('/test/foo/nonapi/foldertwo/morestuff', ('non-api', 'foo-child')),
-            ('/test/foo/nonapi/foldertwo/toomuch', ('non-api', 'foo-child')),
-        )
+        self.test_paths = [
+            '/test',
+            '/test/bar/cat/one',
+            '/test/bar/cat/one/subone',
+            '/test/bar/cat/two',
+            '/test/bar/dog/one',
+            '/test/bar/dog/one/api',
+            '/test/bar/dog/one/api/subapi',
+            '/test/bar/dog/one/api/subapi/moreapi',
+            '/test/bar/dog/one/api/subapi/evenmoreapi',
+            '/test/bar/dog/one/api/subapi/evenmoreapi/api',
+            '/test/foo',
+            '/test/foo/api',
+            '/test/foo/api/subapi',
+            '/test/foo/api/subapi/moreapi',
+            '/test/foo/api/subapi/evenmoreapi',
+            '/test/foo/api/subsubapi',
+            '/test/foo/api/subsubapi/toomuchapi',
+            '/test/foo/nonapi',
+            '/test/foo/nonapi/folderone',
+            '/test/foo/nonapi/foldertwo',
+            '/test/foo/nonapi/foldertwo/morestuff',
+            '/test/foo/nonapi/foldertwo/toomuch',
+        ]
 
     def _mock_walk_subfolders(self, path):
         """
         Function to be provided to mock.side_effect to replace
         walk_subfolders functionality to use test paths.
         """
-        paths = list(map(lambda i: i[0], self.test_paths))
+        paths = list(map(lambda i: i, self.test_paths))
         index = paths.index(path)
         if len(paths) > index + 1:
             return filter(lambda i: i.startswith(path), paths[index:])
         else:
             return []
+
+    def _test_paths(self, valid):
+        for path in self.test_paths:
+            expected = None if path in valid else False
+            actual = self.plugin.wantDirectory(path)
+            self.assertEqual(actual, expected,
+                             '{} != {} for {}'.format(actual, expected, path))
 
     @mock.patch('skipnose.skipnose.walk_subfolders')
     def test_want_directory_include(self, mock_walk_subfolders):
@@ -192,63 +199,131 @@ class TestSkipNose(TestCase):
         Test wantDirectory with include parameter
         """
         mock_walk_subfolders.side_effect = self._mock_walk_subfolders
+        valid = [
+            '/test',
+            '/test/bar/dog/one',
+            '/test/bar/dog/one/api',
+            '/test/bar/dog/one/api/subapi',
+            '/test/bar/dog/one/api/subapi/moreapi',
+            '/test/bar/dog/one/api/subapi/evenmoreapi',
+            '/test/bar/dog/one/api/subapi/evenmoreapi/api',
+            '/test/foo',
+            '/test/foo/api',
+            '/test/foo/api/subapi',
+            '/test/foo/api/subapi/moreapi',
+            '/test/foo/api/subapi/evenmoreapi',
+            '/test/foo/api/subsubapi',
+            '/test/foo/api/subsubapi/toomuchapi',
+        ]
 
-        self.plugin.skipnose_include = ['api']
-        for path, properties in self.test_paths:
-            accepted = ('api-parent', 'api-parent-foo', 'api', 'api-child')
-            expected = (None if any(map(lambda i: i in properties, accepted))
-                        else False)
-            actual = self.plugin.wantDirectory(path)
-            self.assertEqual(actual, expected,
-                             '{} != {} for {}'.format(actual, expected, path))
+        self.plugin.skipnose_include = [['api']]
+        self._test_paths(valid)
 
     @mock.patch('skipnose.skipnose.walk_subfolders')
-    def test_want_directory_include_multiple(self, mock_walk_subfolders):
+    def test_want_directory_include_multiple_or(self, mock_walk_subfolders):
         """
-        Test wantDirectory with multiple include parameters
+        Test wantDirectory with multiple include OR parameters
         """
         mock_walk_subfolders.side_effect = self._mock_walk_subfolders
+        valid = [
+            '/test',
+            '/test/bar/dog/one',
+            '/test/bar/dog/one/api',
+            '/test/bar/dog/one/api/subapi',
+            '/test/bar/dog/one/api/subapi/moreapi',
+            '/test/bar/dog/one/api/subapi/evenmoreapi',
+            '/test/bar/dog/one/api/subapi/evenmoreapi/api',
+            '/test/foo',
+            '/test/foo/api',
+            '/test/foo/api/subapi',
+            '/test/foo/api/subapi/moreapi',
+            '/test/foo/api/subapi/evenmoreapi',
+            '/test/foo/api/subsubapi',
+            '/test/foo/api/subsubapi/toomuchapi',
+            '/test/foo/nonapi',
+            '/test/foo/nonapi/folderone',
+            '/test/foo/nonapi/foldertwo',
+            '/test/foo/nonapi/foldertwo/morestuff',
+            '/test/foo/nonapi/foldertwo/toomuch',
+        ]
 
-        self.plugin.skipnose_include = ['api', 'foo']
-        for path, properties in self.test_paths:
-            accepted = ('api-parent', 'api', 'api-child', 'foo', 'foo-child')
-            expected = (None if any(map(lambda i: i in properties, accepted))
-                        else False)
-            actual = self.plugin.wantDirectory(path)
-            self.assertEqual(actual, expected,
-                             '{} != {} for {}'.format(actual, expected, path))
+        self.plugin.skipnose_include = [['api', 'foo']]
+        self._test_paths(valid)
+
+    @mock.patch('skipnose.skipnose.walk_subfolders')
+    def test_want_directory_include_multiple_and(self, mock_walk_subfolders):
+        """
+        Test wantDirectory with multiple include OR parameters
+        """
+        mock_walk_subfolders.side_effect = self._mock_walk_subfolders
+        valid = [
+            '/test',
+            '/test/foo',
+            '/test/foo/api',
+            '/test/foo/api/subapi',
+            '/test/foo/api/subapi/moreapi',
+            '/test/foo/api/subapi/evenmoreapi',
+            '/test/foo/api/subsubapi',
+            '/test/foo/api/subsubapi/toomuchapi',
+        ]
+
+        self.plugin.skipnose_include = [['api'], ['foo']]
+        self._test_paths(valid)
 
     def test_want_directory_exclude(self):
         """
         Test wantDirectory with exclude parameter
         """
+        valid = [
+            '/test',
+            '/test/bar/cat/one',
+            '/test/bar/cat/one/subone',
+            '/test/bar/cat/two',
+            '/test/bar/dog/one',
+            '/test/bar/dog/one/api/subapi',  # implicitly skipped by walk
+            '/test/bar/dog/one/api/subapi/moreapi',  # noqa implicitly skipped by walk
+            '/test/bar/dog/one/api/subapi/evenmoreapi',  # noqa implicitly skipped by walk
+            '/test/foo',
+            '/test/foo/api/subapi',  # implicitly skipped by walk
+            '/test/foo/api/subapi/moreapi',  # implicitly skipped by walk
+            '/test/foo/api/subapi/evenmoreapi',  # implicitly skipped by walk
+            '/test/foo/api/subsubapi',  # implicitly skipped by walk
+            '/test/foo/api/subsubapi/toomuchapi',  # implicitly skipped by walk
+            '/test/foo/nonapi',
+            '/test/foo/nonapi/folderone',
+            '/test/foo/nonapi/foldertwo',
+            '/test/foo/nonapi/foldertwo/morestuff',
+            '/test/foo/nonapi/foldertwo/toomuch',
+        ]
         self.plugin.skipnose_exclude = ['api']
-        for path, properties in self.test_paths:
-            # exclude subfolders where parent should be rejected
-            if 'api-child' in properties:
-                continue
-            accepted = ('api-parent', 'api-parent-foo', 'non-api')
-            expected = (None if any(map(lambda i: i in properties, accepted))
-                        else False)
-            actual = self.plugin.wantDirectory(path)
-            self.assertEqual(actual, expected,
-                             '{} != {} for {}'.format(actual, expected, path))
+        self._test_paths(valid)
 
     def test_want_directory_exclude_multiple(self):
         """
         Test wantDirectory with multiple exclude parameter
         """
+        valid = [
+            '/test',
+            '/test/bar/cat/one',
+            '/test/bar/cat/one/subone',
+            '/test/bar/cat/two',
+            '/test/bar/dog/one',
+            '/test/bar/dog/one/api/subapi',  # implicitly skipped by walk
+            '/test/bar/dog/one/api/subapi/moreapi',  # noqa implicitly skipped by walk
+            '/test/bar/dog/one/api/subapi/evenmoreapi',  # noqa implicitly skipped by walk
+            '/test/foo/api/subapi',  # implicitly skipped by walk
+            '/test/foo/api/subapi/moreapi',  # implicitly skipped by walk
+            '/test/foo/api/subapi/evenmoreapi',  # implicitly skipped by walk
+            '/test/foo/api/subsubapi',  # implicitly skipped by walk
+            '/test/foo/api/subsubapi/toomuchapi',  # implicitly skipped by walk
+            '/test/foo/nonapi',  # implicitly skipped by walk
+            '/test/foo/nonapi/folderone',  # implicitly skipped by walk
+            '/test/foo/nonapi/foldertwo',  # implicitly skipped by walk
+            '/test/foo/nonapi/foldertwo/morestuff',  # noqa implicitly skipped by walk
+            '/test/foo/nonapi/foldertwo/toomuch',  # implicitly skipped by walk
+        ]
         self.plugin.skipnose_exclude = ['api', 'foo']
-        for path, properties in self.test_paths:
-            # exclude subfolders where parent should be rejected
-            if 'api-child' in properties or 'foo-child' in properties:
-                continue
-            accepted = ('api-parent', 'non-api', 'foo-parent')
-            expected = (None if any(map(lambda i: i in properties, accepted))
-                        else False)
-            actual = self.plugin.wantDirectory(path)
-            self.assertEqual(actual, expected,
-                             '{} != {} for {}'.format(actual, expected, path))
+        self._test_paths(valid)
 
     def test_start_test_no_tests_to_skip(self):
         self.plugin.skipnose_skip_tests = None
