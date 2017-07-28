@@ -1,24 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals, print_function
+from __future__ import print_function, unicode_literals
 import os
-import re
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
+
+from skipnose import __author__, __version__
 
 
 def read(fname):
-    return (open(os.path.join(os.path.dirname(__file__), fname), 'rb')
-            .read().decode('utf-8'))
+    with open(os.path.join(os.path.dirname(__file__), fname), 'rb') as fid:
+        return fid.read().decode('utf-8')
 
 
 authors = read('AUTHORS.rst')
 history = read('HISTORY.rst').replace('.. :changelog:', '')
 licence = read('LICENSE.rst')
 readme = read('README.rst')
-
-
-module_file = read("skipnose/__init__.py")
-metadata = dict(re.findall("__([a-z]+)__\s*=\s*'([^']+)'", module_file))
 
 
 requirements = read('requirements.txt').splitlines() + [
@@ -34,13 +32,13 @@ test_requirements = (
 
 setup(
     name='skipnose',
-    version=metadata['version'],
-    author=metadata['author'],
+    version=__version__,
+    author=__author__,
     description='Nose plugin which allows to include/exclude directories '
                 'for testing by their glob pattern.',
     long_description='\n\n'.join([readme, history, authors, licence]),
     url='https://github.com/Dealertrack/skipnose',
-    packages=find_packages(exclude=['test', 'test.*']),
+    packages=find_packages(exclude=['tests', 'tests.*']),
     install_requires=requirements,
     test_suite='tests',
     tests_require=test_requirements,

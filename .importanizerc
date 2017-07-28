@@ -1,0 +1,23 @@
+{
+    "exclude": [
+        "*/docs/conf.py",
+        "*/.tox"
+    ],
+    "groups": [
+        {
+            "type": "stdlib"
+        },
+        {
+            "type": "remainder"
+        },
+        {
+            "type": "packages",
+            "packages": [
+                "skipnose"
+            ]
+        },
+        {
+            "type": "local"
+        }
+    ]
+}

@@ -4,6 +4,7 @@ from unittest import TestCase
 import mock
 from nose.case import FunctionTestCase
 from nose.plugins.skip import SkipTest
+
 from skipnose.skipnose import SkipNose, walk_subfolders
 
 

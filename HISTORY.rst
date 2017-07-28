@@ -3,11 +3,18 @@
 History
 -------
 
+0.3.1 (2017-07-28)
+~~~~~~~~~~~~~~~~~~
+
+* Using wheels for distribution
+* Excluding tests from being installed
+* Added importanize as CI step
+
 0.3.0 (2017-02-18)
 ~~~~~~~~~~~~~~~~~~
 
 * **New** ``--skipnose-include`` clauses now can either be ANDed or ORed.
-  
+
   ANDed example::
 
   	 --skipnose-include=foo  --skipnose-include=bar
